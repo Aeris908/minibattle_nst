@@ -4,6 +4,26 @@
 
 ---
 
+## 0. Самый короткий запуск
+
+В папке проекта:
+
+```cmd
+setup.bat
+calibrate.bat "C:\path\to\sample.mp4" 45
+start_all.bat
+```
+
+- `setup.bat` — один раз создаёт `.venv` и ставит зависимости.
+- `calibrate.bat` — один раз запускает калибровку.
+- `start_all.bat` — открывает два окна: дашборд и воркер.
+
+Браузер: **http://localhost:8501**
+
+Если предпочитаете команды, а не `.bat`, все команды есть ниже и в README.
+
+---
+
 ## 1. Что подготовить один раз
 
 1. **Windows + Python 3.10+**, зависимости из `requirements.txt`.
@@ -13,7 +33,7 @@
    set GOAL3_FFPROBE=C:\ffmpeg\bin\ffprobe.exe
    set GOAL3_FFMPEG_LOCATION=C:\ffmpeg\bin
    ```
-3. Запустите `pip install -r requirements.txt`.
+3. Запустите `setup.bat` (или `pip install -r requirements.txt` в активированном `.venv`).
 4. Модели Whisper/easyocr при первом запуске скачиваются в локальный кэш. Для офлайн-режима:
    ```cmd
    set GOAL3_WHISPER_LOCAL_ONLY=1
@@ -26,7 +46,13 @@
 Layout у разных стримеров разный. Калибровка делается один раз для конкретной раскладки.
 
 ```cmd
-python tools\calibrate_ui.py --video path\to\sample.mp4 --time 45
+calibrate.bat "C:\path\to\sample.mp4" 45
+```
+
+или напрямую:
+
+```cmd
+.venv\Scripts\python.exe tools\calibrate_ui.py --video "C:\path\to\sample.mp4" --time 45
 ```
 
 В окнах OpenCV выберите:
@@ -43,7 +69,7 @@ python tools\calibrate_ui.py --video path\to\sample.mp4 --time 45
 Затем **доберите шаблоны всех цифр 0–9** с кадров, где они видны:
 
 ```cmd
-python tools\calibrate_ui.py --capture-digit 3 --video path\to\video.mp4 --time 610
+.venv\Scripts\python.exe tools\calibrate_ui.py --capture-digit 3 --video "C:\path\to\video.mp4" --time 610
 ```
 
 Проверьте, что для всех десяти цифр есть хотя бы один шаблон. Иначе голы с такой цифрой не прочитаются, а минибатл уйдёт в `needs_review`.
@@ -65,13 +91,14 @@ set GOAL3_TOP_TEAM_ROLE=OPPONENT_TEAM
 - В одном видео может быть **до двух и более минибатлов**. Воркер скачивает видео один раз, один раз проходит OpenCV, затем сам делит матчи на минибатлы по длине видео/длинным паузам и лимиту **9 матчей**.
 - В каждом минибатле — до **12 игроков** (по 6 на сторону).
 - Одна итерация воркера по умолчанию — **одно исходное видео**.
-  - `python worker.py` — обработать одно видео;
-  - `python worker.py --limit 0` — всю очередь;
-  - `python worker.py --loop` — ждать новые видео и обрабатывать очередь.
-- `python worker.py --video-id YOUTUBE_ID --force` — переобработать конкретное исходное видео.
+  - `start_worker.bat` — запуск в режиме `--loop`;
+  - `.venv\Scripts\python.exe worker.py` — обработать одно видео;
+  - `.venv\Scripts\python.exe worker.py --limit 0` — всю очередь;
+  - `.venv\Scripts\python.exe worker.py --loop` — ждать новые видео.
+- `.venv\Scripts\python.exe worker.py --video-id YOUTUBE_ID --force` — переобработать конкретное видео.
 - После ошибки/остановки можно вернуть зависшие видео в очередь:
   ```cmd
-  python worker.py --reset-stale
+  .venv\Scripts\python.exe worker.py --reset-stale
   ```
 
 ---

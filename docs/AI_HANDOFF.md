@@ -49,6 +49,10 @@
 | `core/metrics_engine.py` | Drama, Self-Tilt, doublet, clutch, MVP, fatigue |
 | `worker.py` | одна исходная видео-итерация, multi-series orchestration, persist, cleanup |
 | `app.py` | 5 вкладок Streamlit |
+| `setup.bat` | создание `.venv`, установка зависимостей, проверка ffmpeg |
+| `calibrate.bat` | запуск калибровки с путём к видео |
+| `start_dashboard.bat` / `start_worker.bat` | раздельный запуск UI и воркера |
+| `start_all.bat` | открыть дашборд и воркер в двух окнах |
 | `docs/HUMAN_GUIDE.md` | действия оператора |
 | `README.md` | публичное описание проекта |
 

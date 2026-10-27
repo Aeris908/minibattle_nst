@@ -93,18 +93,79 @@ set GOAL3_WHISPER_COMPUTE_TYPE=int8
 set GOAL3_WHISPER_LOCAL_ONLY=1
 ```
 
-## Калибровка
+## Быстрый запуск на Windows (.bat)
 
-Один раз для конкретной раскладки стрима:
+Все `.bat`-файлы — просто обёртки над командами, без PowerShell и фоновых сервисов.
+
+### 1. Установка
+
+Запусти в командной строке:
 
 ```cmd
-python tools\calibrate_ui.py --video path\to\sample.mp4 --time 45
+cd /d "D:\Goal 3 minibattle"
+setup.bat
+```
+
+Или дважды кликни `setup.bat`. Скрипт создаст `.venv`, установит зависимости и проверит ffmpeg.
+
+### 2. Калибровка
+
+```cmd
+calibrate.bat "C:\path\to\sample.mp4" 45
+```
+
+Или дважды кликни `calibrate.bat` и вставь путь к видео.
+
+### 3. Запуск всего
+
+```cmd
+start_all.bat
+```
+
+Откроются два окна:
+
+- `Goal 3 dashboard` — браузерный интерфейс;
+- `Goal 3 worker` — обработчик очереди.
+
+Если нужно запускать по отдельности:
+
+```cmd
+start_dashboard.bat
+start_worker.bat
+```
+
+Браузер: **http://localhost:8501**
+
+### Ручные команды без .bat
+
+```cmd
+cd /d "D:\Goal 3 minibattle"
+.venv\Scripts\python.exe -m streamlit run app.py
+```
+
+```cmd
+cd /d "D:\Goal 3 minibattle"
+.venv\Scripts\python.exe worker.py --loop
+```
+
+## Калибровка
+
+Один раз для конкретной раскладки стрима. Через `.bat`:
+
+```cmd
+calibrate.bat "C:\path\to\sample.mp4" 45
+```
+
+Или напрямую:
+
+```cmd
+.venv\Scripts\python.exe tools\calibrate_ui.py --video path\to\sample.mp4 --time 45
 ```
 
 Выбираются playfield, scoreboard anchor, обе цифры счёта, roster overlay и lineup screen. Затем доберите шаблоны цифр 0–9 с кадров, где они видны:
 
 ```cmd
-python tools\calibrate_ui.py --capture-digit 3 --video path\to\video.mp4 --time 610
+.venv\Scripts\python.exe tools\calibrate_ui.py --capture-digit 3 --video path\to\video.mp4 --time 610
 ```
 
 Если верхняя команда на плашке — соперник:
@@ -120,7 +181,7 @@ set GOAL3_TOP_TEAM_ROLE=OPPONENT_TEAM
 ### Очередь
 
 ```cmd
-python worker.py --add-url "https://www.youtube.com/playlist?list=..."
+.venv\Scripts\python.exe worker.py --add-url "https://www.youtube.com/playlist?list=..."
 ```
 
 или добавьте URL в дашборде.
@@ -128,18 +189,18 @@ python worker.py --add-url "https://www.youtube.com/playlist?list=..."
 ### Обработка
 
 ```cmd
-python worker.py                 :: одно исходное видео
-python worker.py --limit 0       :: вся очередь
-python worker.py --loop           :: ждать новые видео
+.venv\Scripts\python.exe worker.py                :: одно исходное видео
+.venv\Scripts\python.exe worker.py --limit 0      :: вся очередь
+.venv\Scripts\python.exe worker.py --loop          :: ждать новые видео
 ```
 
 Полезно:
 
 ```cmd
-python worker.py --video-id YOUTUBE_ID --force
-python worker.py --reset-stale
-python worker.py --reset-stale --stale-hours 0
-python worker.py --cleanup-temp
+.venv\Scripts\python.exe worker.py --video-id YOUTUBE_ID --force
+.venv\Scripts\python.exe worker.py --reset-stale
+.venv\Scripts\python.exe worker.py --reset-stale --stale-hours 0
+.venv\Scripts\python.exe worker.py --cleanup-temp
 ```
 
 Одна итерация = одно **исходное видео**. Внутри него может быть один или два минибатла; каждый получит отдельную запись и отчёт.
@@ -147,7 +208,7 @@ python worker.py --cleanup-temp
 ### Дашборд
 
 ```cmd
-streamlit run app.py
+.venv\Scripts\python.exe -m streamlit run app.py
 ```
 
 Вкладки:
@@ -183,6 +244,11 @@ streamlit run app.py
 
 ```text
 minibattle_nst/
+├── setup.bat
+├── calibrate.bat
+├── start_all.bat
+├── start_dashboard.bat
+├── start_worker.bat
 ├── config.py
 ├── database.py
 ├── requirements.txt
