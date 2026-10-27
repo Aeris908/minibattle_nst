@@ -1203,7 +1203,93 @@ class Database:
             processed_at=datetime.now().isoformat(timespec="seconds"),
         )
 
+    def rebuild_minibattle_artifacts(self, video_id: str) -> str | None:
+        """Recompute MVP/blunder, summary and Markdown after manual edits.
+
+        Event attribution is stored in match_events; the match/series MVP and
+        the Markdown report must be rebuilt from the edited database rows.
+        """
+        from core import event_parser, metrics_engine
+
+        minibattle = self.get_minibattle(video_id)
+        if not minibattle:
+            return None
+        roster_rows = self.get_roster(video_id)
+        players = []
+        for row in roster_rows:
+            players.append(
+                {
+                    "player_id": int(row["player_id"]),
+                    "canonical_name": row["canonical_name"],
+                    "team_role": row["team_role"],
+                    "controller_num": row["controller_num"],
+                    "field_position": row["field_position"],
+                    "aliases": self._parse_aliases(row.get("aliases_json")),
+                }
+            )
+        roster = {
+            "players": players,
+            "warnings": [],
+            "voice_team_label": None,
+            "opponent_team_label": None,
+        }
+        matches = self.get_matches(video_id)
+        for match in matches:
+            match["events"] = self.get_match_events(int(match["match_id"]))
+        metrics = metrics_engine.apply_minibattle_metrics(matches, roster)
+        summary = metrics["summary"]
+        for match in matches:
+            self.update_match(
+                int(match["match_id"]),
+                drama_score=match.get("drama_score", 0.0),
+                comeback_flag=match.get("comeback_flag", 0),
+                lead_blown_flag=match.get("lead_blown_flag", 0),
+                self_tilt_index=match.get("self_tilt_index", 0.0),
+                tech_complaints_count=match.get("tech_complaints_count", 0),
+                mvp_player_id=match.get("mvp_player_id"),
+                blunder_player_id=match.get("blunder_player_id"),
+            )
+        source_id = minibattle.get("source_video_id")
+        series_count = 1
+        if source_id:
+            series_count = max(1, len(self.get_source_minibattles(source_id)))
+        video = {
+            "video_id": video_id,
+            "source_video_id": source_id,
+            "title": minibattle.get("title") or video_id,
+            "url": minibattle.get("url"),
+            "series_index": minibattle.get("series_index", 1),
+            "series_count": series_count,
+        }
+        report = event_parser.build_minibattle_report(
+            video=video,
+            roster=roster,
+            analysis={"matches": matches},
+            summary=summary,
+            metrics=metrics,
+        )
+        self.update_minibattle(
+            video_id,
+            total_matches=summary.get("total_matches", 0),
+            series_wins_voice=summary.get("series_wins_voice", 0),
+            series_draws=summary.get("series_draws", 0),
+            series_losses_voice=summary.get("series_losses_voice", 0),
+            total_goals_voice=summary.get("total_goals_voice", 0),
+            total_goals_opp=summary.get("total_goals_opp", 0),
+            minibattle_mvp_player_id=summary.get("minibattle_mvp_player_id"),
+            minibattle_blunder_player_id=summary.get("minibattle_blunder_player_id"),
+            avg_self_tilt_index=summary.get("avg_self_tilt_index", 0.0),
+            minibattle_report_md=report,
+        )
+        config.EXPORT_DIR.mkdir(parents=True, exist_ok=True)
+        path = config.EXPORT_DIR / f"{video_id}_minibattle.md"
+        path.write_text(report, encoding="utf-8")
+        log.info("Rebuilt report and MVP for %s", video_id)
+        return report
+
     def mark_minibattle_verified(self, video_id: str) -> None:
+        # Picks up all manual attribution edits before flipping the status.
+        self.rebuild_minibattle_artifacts(video_id)
         with self._lock, self.conn:
             self.conn.execute(
                 "UPDATE matches SET verification_status = ? WHERE video_id = ?",
@@ -1598,9 +1684,14 @@ class Database:
         assist_player_id: int | None,
         blunder_player_id: int | None,
     ) -> None:
+        event = self.fetchone(
+            "SELECT video_id FROM match_events WHERE event_id = ?", (event_id,)
+        )
         self.update_event(
             event_id,
             author_player_id=author_player_id,
             assist_player_id=assist_player_id,
             blunder_player_id=blunder_player_id,
         )
+        if event:
+            self.rebuild_minibattle_artifacts(event["video_id"])

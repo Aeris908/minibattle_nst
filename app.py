@@ -396,9 +396,16 @@ def tab_review(db: Database) -> None:
         else:
             st.info("В матче не найдено событий-голов.")
     st.divider()
-    if st.button("✅ Подтвердить весь минибатл → manual_verified", type="primary"):
+    col_rebuild, col_confirm = st.columns([1, 1])
+    if col_rebuild.button("♻️ Пересобрать отчёт и MVP"):
+        db.rebuild_minibattle_artifacts(mb["video_id"])
+        st.success("Отчёт, MVP и сводка пересобраны из текущих данных БД.")
+        st.rerun()
+    if col_confirm.button(
+        "✅ Подтвердить весь минибатл → manual_verified", type="primary"
+    ):
         db.mark_minibattle_verified(mb["video_id"])
-        st.success("Минибатл и все его матчи подтверждены.")
+        st.success("Минибатл и все его матчи подтверждены. Отчёт пересобран.")
         st.rerun()
 
 
