@@ -1,0 +1,9 @@
+opencv-python>=4.8,<5
+numpy>=1.24,<3
+faster-whisper>=1.0
+easyocr>=1.7
+yt-dlp>=2024.1
+rapidfuzz>=3.5
+streamlit>=1.50
+plotly>=5.18
+pandas>=2.0

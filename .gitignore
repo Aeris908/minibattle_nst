@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+data/
+.streamlit/
+.pytest_cache/
+*.log
+.env
+*.db
+*.db-wal
+*.db-shm
+*.bak
