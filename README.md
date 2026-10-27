@@ -65,15 +65,24 @@ worker.py
 
 ## Установка
 
-Требования: Windows, Python **3.10+**, ffmpeg/ffprobe.
+Требования: Windows, **Python 3.10–3.14** (рекомендуется 3.12 или 3.13), ffmpeg/ffprobe.
+
+> **Python 3.15 не поддерживается:** PyTorch, CTranslate2 и tokenizers пока не имеют совместимых Windows-колёс, pip пытается собрать их из исходников и падает на Rust. `setup.bat` сам проверит версию и выберет подходящий Python.
+
+Самый простой путь:
 
 ```cmd
 git clone https://github.com/Aeris908/minibattle_nst.git
 cd minibattle_nst
-py -3.10 -m venv .venv
-.venv\Scripts\activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
+setup.bat
+```
+
+Ручной вариант:
+
+```cmd
+py -3.12 -m venv .venv
+.venv\Scripts\python.exe -m pip install --upgrade pip
+.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
 ffmpeg:
@@ -316,6 +325,8 @@ Views: `v_player_career_stats`, `v_h2h_matrix`, `v_synergy_duos`, `v_country_tie
 | Мусорный ростер | ROI overlay, качество видео, ручная чистка/merge |
 | Нет атрибуции | review, алиасы, hotwords |
 | Зависло processing | `python worker.py --reset-stale --stale-hours 0` |
+| `tokenizers`/Rust error при установке | используется Python 3.15; установи 3.12–3.14 и запусти `setup.bat` |
+| `setup.bat` не видит Python | установи 3.12 с python.org, включи Python Launcher/PATH |
 
 ## Приватность и безопасность
 

@@ -11,3 +11,4 @@ data/
 *.db-wal
 *.db-shm
 *.bak
+torchinductor_*/

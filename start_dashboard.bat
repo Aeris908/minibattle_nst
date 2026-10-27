@@ -11,6 +11,7 @@ if not exist ".venv\Scripts\python.exe" (
 
 set "PYTHONUTF8=1"
 set "PYTHONIOENCODING=utf-8"
+set "PYTHONDONTWRITEBYTECODE=1"
 
 echo ============================================================
 echo   Goal 3 dashboard

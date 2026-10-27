@@ -7,10 +7,22 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 from pathlib import Path
 from typing import Iterable
 
 import numpy as np
+
+# PyTorch / CTranslate2 / tokenizers do not provide Windows wheels for the
+# newest Python releases yet.  Keep this explicit so the user gets a readable
+# error instead of a Rust source-build failure.
+if not ((3, 10) <= sys.version_info[:2] <= (3, 14)):
+    raise RuntimeError(
+        "Python 3.10-3.14 is required (Python 3.12/3.13 recommended). "
+        f"Detected Python {sys.version.split()[0]}. "
+        "Python 3.15 is not supported by the current PyTorch/CTranslate2/"
+        "tokenizers wheels. Install Python 3.12 and recreate .venv."
+    )
 
 # ---------------------------------------------------------------------------
 # Paths

@@ -8,32 +8,49 @@ echo   Goal 3 Minibattle Analytics - first-time setup
 echo ============================================================
 echo.
 
-set "PYTHON_CMD="
-python --version >nul 2>nul
-if not errorlevel 1 set "PYTHON_CMD=python"
-if not defined PYTHON_CMD (
-    py -3 --version >nul 2>nul
-    if not errorlevel 1 set "PYTHON_CMD=py -3"
+if exist ".venv\Scripts\python.exe" (
+    ".venv\Scripts\python.exe" -c "import sys; raise SystemExit(0 if (3,10) <= sys.version_info[:2] <= (3,14) else 1)" >nul 2>nul
+    if errorlevel 1 (
+        echo Existing .venv uses an unsupported Python:
+        ".venv\Scripts\python.exe" --version
+        echo Removing the incompatible .venv...
+        rmdir /s /q ".venv"
+        if exist ".venv" (
+            echo ERROR: could not remove .venv. Close programs using it and retry.
+            pause
+            exit /b 1
+        )
+    )
 )
-if not defined PYTHON_CMD (
-    echo ERROR: Python 3.10+ was not found.
-    echo Install it from https://www.python.org/downloads/
-    echo IMPORTANT: enable "Add Python to PATH" during installation.
+
+set "PYTHON_EXE="
+call :try_py 3.12
+if not defined PYTHON_EXE call :try_py 3.11
+if not defined PYTHON_EXE call :try_py 3.10
+if not defined PYTHON_EXE call :try_py 3.13
+if not defined PYTHON_EXE call :try_py 3.14
+if not defined PYTHON_EXE call :try_python
+if not defined PYTHON_EXE call :try_common
+if not defined PYTHON_EXE (
+    echo ERROR: no supported Python installation was found.
+    echo Supported versions: Python 3.10 - 3.14. Recommended: Python 3.12/3.13.
+    echo Python 3.15 is too new for this stack:
+    echo PyTorch, CTranslate2 and tokenizers do not have compatible wheels yet.
+    echo.
+    echo Install Python 3.12 from https://www.python.org/downloads/
+    echo or run: winget install --id Python.Python.3.12 -e
+    echo Enable "Add Python to PATH" and the Python launcher during installation.
     echo.
     pause
     exit /b 1
 )
 
-%PYTHON_CMD% -c "import sys; raise SystemExit(0 if sys.version_info >= (3,10) else 1)" >nul 2>nul
-if errorlevel 1 (
-    echo ERROR: Python 3.10 or newer is required.
-    pause
-    exit /b 1
-)
+echo Using Python:
+"%PYTHON_EXE%" --version
 
 if not exist ".venv\Scripts\python.exe" (
     echo Creating virtual environment .venv ...
-    %PYTHON_CMD% -m venv .venv
+    "%PYTHON_EXE%" -m venv .venv
     if errorlevel 1 (
         echo ERROR: could not create the virtual environment.
         pause
@@ -84,4 +101,29 @@ echo   start_all.bat
 echo ============================================================
 echo.
 pause
+exit /b 0
+
+:try_py
+py -%1 --version >nul 2>nul
+if errorlevel 1 exit /b 1
+for /f "delims=" %%P in ('py -%1 -c "import sys; print(sys.executable)"') do set "PYTHON_EXE=%%P"
+exit /b 0
+
+:try_python
+python -c "import sys; raise SystemExit(0 if (3,10) <= sys.version_info[:2] <= (3,14) else 1)" >nul 2>nul
+if errorlevel 1 exit /b 1
+for /f "delims=" %%P in ('python -c "import sys; print(sys.executable)"') do set "PYTHON_EXE=%%P"
+exit /b 0
+
+:try_common
+for %%D in (314 313 312 311 310) do (
+    if not defined PYTHON_EXE call :try_exe "%LOCALAPPDATA%\Programs\Python\Python%%D\python.exe"
+)
+exit /b 0
+
+:try_exe
+if not exist %1 exit /b 1
+%1 -c "import sys; raise SystemExit(0 if (3,10) <= sys.version_info[:2] <= (3,14) else 1)" >nul 2>nul
+if errorlevel 1 exit /b 1
+set "PYTHON_EXE=%~1"
 exit /b 0

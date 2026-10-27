@@ -29,6 +29,7 @@ if "%VIDEO%"=="" (
 )
 
 set "PYTHONUTF8=1"
+set "PYTHONDONTWRITEBYTECODE=1"
 echo.
 echo Starting calibration at %TIME% seconds...
 echo The tool will print which digit templates are still missing.

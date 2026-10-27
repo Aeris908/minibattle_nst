@@ -26,7 +26,7 @@ start_all.bat
 
 ## 1. Что подготовить один раз
 
-1. **Windows + Python 3.10+**, зависимости из `requirements.txt`.
+1. **Windows + Python 3.10–3.14** (рекомендуется 3.12/3.13). Python 3.15 не поддерживается: для PyTorch/CTranslate2/tokenizers ещё нет совместимых колёс. `setup.bat` сам выберет подходящую версию.
 2. **ffmpeg.exe** и **ffprobe.exe**. Либо добавьте их в `PATH`, либо задайте:
    ```cmd
    set GOAL3_FFMPEG=C:\ffmpeg\bin\ffmpeg.exe
@@ -205,6 +205,7 @@ set GOAL3_TOP_TEAM_ROLE=OPPONENT_TEAM
 | Мусор в ростере | ROI overlay/lineup, качество видео, чистка имён и Merge Players |
 | Не распознаны авторы | review-цитаты, алиасы игроков, hotwords Whisper |
 | Ошибка ffmpeg | `ffmpeg -version`, `GOAL3_FFMPEG`, права на temp |
+| `tokenizers`/Rust error при установке | используется Python 3.15; установи 3.12–3.14 и запусти `setup.bat` |
 | Зависло `processing` | `python worker.py --reset-stale --stale-hours 0` |
 
 Лог: `data/logs/pipeline.log`.
